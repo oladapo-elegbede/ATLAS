@@ -3,8 +3,32 @@ ATLAS - Civilian Threat Intelligence Platform
 Main FastAPI application entry point.
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from database.neo4j import close_driver, verify_connectivity
+
+
+# ============================================
+# Application Lifecycle
+# ============================================
+# Handles startup and shutdown events for the application.
+# On shutdown, we cleanly close the Neo4j driver connection.
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan context manager.
+    Runs setup code before the app starts, and cleanup code before it stops.
+    """
+    # --- Startup ---
+    # (Nothing to initialize eagerly — Neo4j driver is created lazily on first use)
+    yield
+    # --- Shutdown ---
+    # Cleanly close the Neo4j driver connection
+    await close_driver()
 
 
 # ============================================
@@ -17,6 +41,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 
@@ -24,7 +49,6 @@ app = FastAPI(
 # CORS Configuration
 # ============================================
 # Allows the frontend (running on a different port) to communicate with the API.
-# For local development, we permit standard frontend dev ports.
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,3 +94,17 @@ async def health_check():
         "service": "atlas-api",
         "version": "0.1.0",
     }
+
+
+# ============================================
+# Neo4j Status Endpoint
+# ============================================
+
+@app.get("/api/neo4j-status")
+async def neo4j_status():
+    """
+    Verifies connectivity to the Neo4j graph database.
+    Returns connection status and server information if reachable.
+    """
+    result = await verify_connectivity()
+    return result

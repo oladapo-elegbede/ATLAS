@@ -13,3 +13,6 @@ pydantic-settings==2.7.0
 
 # --- Environment Variables ---
 python-dotenv==1.0.1
+
+# --- Neo4j Graph Database Driver ---
+neo4j==5.27.0
