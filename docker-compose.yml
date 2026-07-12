@@ -1,0 +1,51 @@
+# ============================================
+# ATLAS - Docker Compose Configuration
+# ============================================
+# Defines all backing services for local development.
+# Run with: docker compose up
+# Stop with: docker compose down
+
+services:
+
+  # --------------------------------------------
+  # Neo4j - Graph Database
+  # --------------------------------------------
+  # Stores the entity relationship graph that powers
+  # ATLAS's core intelligence and visualization.
+  #
+  # Ports:
+  #   7474 - HTTP browser interface (visit in browser)
+  #   7687 - Bolt protocol (used by the backend to query)
+  neo4j:
+    image: neo4j:5-community
+    container_name: atlas-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/atlas_dev_password
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 512m
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+# ============================================
+# Persistent Storage Volumes
+# ============================================
+# These survive container restarts.
+# Delete with: docker compose down -v
+volumes:
+  neo4j-data:
+    name: atlas-neo4j-data
+  neo4j-logs:
+    name: atlas-neo4j-logs
