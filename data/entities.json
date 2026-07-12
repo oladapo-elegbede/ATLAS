@@ -1,0 +1,113 @@
+{
+  "nodes": [
+    {
+      "id": "person-james-chen",
+      "label": "Person",
+      "properties": {
+        "name": "James Chen",
+        "title": "Senior Talent Partner",
+        "role": "recruiter",
+        "risk_level": "high"
+      }
+    },
+    {
+      "id": "company-meridian-global",
+      "label": "Company",
+      "properties": {
+        "name": "Meridian Global Partners",
+        "industry": "recruiting",
+        "claimed_headquarters": "Singapore",
+        "risk_level": "high"
+      }
+    },
+    {
+      "id": "domain-meridian-global-co",
+      "label": "Domain",
+      "properties": {
+        "value": "meridian-global.co",
+        "registered_days_ago": 47,
+        "registrar": "Namecheap",
+        "risk_level": "high"
+      }
+    },
+    {
+      "id": "email-james-chen",
+      "label": "Email",
+      "properties": {
+        "value": "james.chen@meridian-global.co",
+        "risk_level": "high"
+      }
+    },
+    {
+      "id": "email-hr",
+      "label": "Email",
+      "properties": {
+        "value": "hr@meridian-global.co",
+        "risk_level": "medium"
+      }
+    },
+    {
+      "id": "email-careers",
+      "label": "Email",
+      "properties": {
+        "value": "careers@meridian-global.co",
+        "risk_level": "medium"
+      }
+    },
+    {
+      "id": "phone-meridian-primary",
+      "label": "Phone",
+      "properties": {
+        "value": "+65-3163-8942",
+        "country": "SG",
+        "type": "voip",
+        "risk_level": "medium"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "from": "person-james-chen",
+      "to": "company-meridian-global",
+      "type": "OPERATES",
+      "properties": {
+        "role": "recruiter",
+        "since": "2026-04-12"
+      }
+    },
+    {
+      "from": "company-meridian-global",
+      "to": "domain-meridian-global-co",
+      "type": "USES",
+      "properties": {
+        "as": "primary_domain"
+      }
+    },
+    {
+      "from": "domain-meridian-global-co",
+      "to": "email-james-chen",
+      "type": "HOSTS",
+      "properties": {}
+    },
+    {
+      "from": "domain-meridian-global-co",
+      "to": "email-hr",
+      "type": "HOSTS",
+      "properties": {}
+    },
+    {
+      "from": "domain-meridian-global-co",
+      "to": "email-careers",
+      "type": "HOSTS",
+      "properties": {}
+    },
+    {
+      "from": "company-meridian-global",
+      "to": "phone-meridian-primary",
+      "type": "HAS_CONTACT",
+      "properties": {
+        "primary": true
+      }
+    }
+  ]
+}
