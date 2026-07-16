@@ -5,10 +5,11 @@ Main FastAPI application entry point.
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from database.neo4j import close_driver, verify_connectivity
+from services.search_service import search_entity
 
 
 # ============================================
@@ -107,4 +108,37 @@ async def neo4j_status():
     Returns connection status and server information if reachable.
     """
     result = await verify_connectivity()
+    return result
+
+
+# ============================================
+# Search Endpoint
+# ============================================
+
+@app.get("/api/search")
+async def search(
+    q: str = Query(
+        ...,
+        min_length=1,
+        max_length=256,
+        description="The value to search for (email, domain, phone, etc.)",
+        examples=["james.chen@meridian-global.co"],
+    )
+):
+    """
+    Search for an entity by its value and return its local graph neighborhood.
+
+    This is the primary entry point for ATLAS investigations. Given a
+    suspicious contact (email, domain, phone), it returns the connected
+    fraud network within 2 hops.
+
+    Query parameters:
+        q: The value to search for. Case-insensitive.
+           Examples: an email address, a domain name, a phone number.
+
+    Returns:
+        A JSON object containing the root entity, all connected nodes,
+        and all relationships between them.
+    """
+    result = await search_entity(q)
     return result
