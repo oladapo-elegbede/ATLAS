@@ -2,12 +2,14 @@
  * useGraphData
  *
  * Transforms an ATLAS API search response into React Flow's
- * nodes and edges format, with automatic layout via dagre.
+ * nodes and edges format, with automatic layout via dagre
+ * and staggered reveal animation delays.
  */
 
 import { useMemo } from "react";
 import dagre from "dagre";
 import type { Node, Edge } from "@xyflow/react";
+import { computeHopDistances, computeAnimationDelay } from "./graphAnimation";
 
 // ============================================
 // Types
@@ -61,7 +63,14 @@ export function useGraphData(
 
     const rootId = searchResult.root_entity?.id;
 
-    // Build a dagre graph to compute positions
+    // Compute BFS hop distances from root for reveal ordering
+    const hopDistances = computeHopDistances(
+      rootId,
+      searchResult.nodes,
+      searchResult.relationships
+    );
+
+    // Compute layout via dagre
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({
@@ -73,10 +82,7 @@ export function useGraphData(
     });
 
     searchResult.nodes.forEach((node) => {
-      dagreGraph.setNode(node.id, {
-        width: NODE_WIDTH,
-        height: NODE_HEIGHT,
-      });
+      dagreGraph.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
     });
 
     searchResult.relationships.forEach((rel) => {
@@ -85,7 +91,7 @@ export function useGraphData(
 
     dagre.layout(dagreGraph);
 
-    // Build React Flow nodes using our custom "entity" node type
+    // Build React Flow nodes with animation delays
     const flowNodes: Node[] = searchResult.nodes.map((node) => {
       const dagreNode = dagreGraph.node(node.id);
       const displayValue =
@@ -95,6 +101,9 @@ export function useGraphData(
       const riskLevel =
         (node.properties.risk_level as "low" | "medium" | "high" | undefined) ??
         "low";
+
+      const hopDistance = hopDistances.get(node.id) ?? 0;
+      const animationDelay = computeAnimationDelay(hopDistance);
 
       return {
         id: node.id,
@@ -109,11 +118,18 @@ export function useGraphData(
           displayValue,
           riskLevel,
           isRoot: node.id === rootId,
+          animationDelay,
         },
       };
     });
 
-    // Build React Flow edges
+    // Compute total reveal duration (last node delay + node reveal time)
+    const maxNodeDelay = Math.max(
+      ...flowNodes.map((n) => (n.data.animationDelay as number) ?? 0)
+    );
+    const edgeStartDelay = maxNodeDelay + 200; // edges appear slightly after last node
+
+    // Build React Flow edges with delayed reveal
     const flowEdges: Edge[] = searchResult.relationships.map((rel, index) => ({
       id: `edge-${index}-${rel.from}-${rel.to}`,
       source: rel.from,
@@ -124,6 +140,7 @@ export function useGraphData(
       style: {
         stroke: "#475569",
         strokeWidth: 1.5,
+        animationDelay: `${edgeStartDelay}ms`,
       },
       labelStyle: {
         fill: "#94a3b8",

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ATLAS - Global Styles
  * Dark mode base for the entire application.
  */
@@ -43,4 +43,39 @@ body {
 
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out;
+}
+
+/* Node reveal animation — used during graph expansion */
+@keyframes nodeReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-nodeReveal {
+  animation: nodeReveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Edges are hidden by default during reveal, then fade in */
+@keyframes edgeReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.react-flow__edge-path {
+  animation: edgeReveal 0.5s ease-in;
+  animation-fill-mode: both;
 }

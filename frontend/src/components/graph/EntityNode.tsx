@@ -3,9 +3,7 @@
  *
  * Custom React Flow node component representing an ATLAS entity.
  * Renders an icon, label, and value with color coding by entity type.
- *
- * High-risk entities receive a subtle pulsing red glow to draw
- * the investigator''s attention.
+ * Applies a staggered reveal animation based on hop distance from root.
  */
 
 import { memo } from "react";
@@ -81,6 +79,7 @@ export interface EntityNodeData {
   displayValue: string;
   riskLevel?: "low" | "medium" | "high";
   isRoot?: boolean;
+  animationDelay?: number;
   [key: string]: unknown;
 }
 
@@ -95,10 +94,19 @@ function EntityNodeComponent({ data }: NodeProps) {
 
   const isHighRisk = nodeData.riskLevel === "high";
   const isRoot = nodeData.isRoot === true;
+  const animationDelay = nodeData.animationDelay ?? 0;
 
   return (
-    <div className="relative">
-      {/* Ambient risk pulse (behind the card) */}
+    <div
+      className="relative animate-nodeReveal"
+      style={{
+        animationDelay: `${animationDelay}ms`,
+        // Hide initially (until the animation kicks in) to avoid flash
+        opacity: 0,
+        animationFillMode: "forwards",
+      }}
+    >
+      {/* Ambient risk pulse */}
       {isHighRisk && (
         <div className="absolute -inset-1 rounded-lg bg-red-500/20 blur-md animate-pulse pointer-events-none" />
       )}
@@ -108,7 +116,7 @@ function EntityNodeComponent({ data }: NodeProps) {
         <div className="absolute -inset-0.5 rounded-lg bg-cyan-500/30 blur-sm pointer-events-none" />
       )}
 
-      {/* Connection handles (invisible but required by React Flow) */}
+      {/* Connection handles */}
       <Handle
         type="target"
         position={Position.Left}
@@ -130,14 +138,11 @@ function EntityNodeComponent({ data }: NodeProps) {
           transition-all duration-200
         `}
       >
-        {/* Icon */}
         <div className={`flex-shrink-0 ${style.color}`}>
           <Icon size={18} strokeWidth={2} />
         </div>
 
-        {/* Text content */}
         <div className="flex-1 min-w-0">
-          {/* Entity type label (small caps) */}
           <div className="flex items-center gap-2 mb-0.5">
             <span
               className={`text-[9px] font-mono uppercase tracking-widest ${style.color} opacity-80`}
@@ -151,7 +156,6 @@ function EntityNodeComponent({ data }: NodeProps) {
             )}
           </div>
 
-          {/* The actual value */}
           <div className="text-sm text-slate-100 font-medium truncate">
             {nodeData.displayValue}
           </div>
@@ -161,5 +165,4 @@ function EntityNodeComponent({ data }: NodeProps) {
   );
 }
 
-// Memoize to prevent unnecessary re-renders during pan/zoom
 export const EntityNode = memo(EntityNodeComponent);
