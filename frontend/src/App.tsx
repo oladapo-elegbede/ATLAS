@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ATLAS - Civilian Threat Intelligence Platform
  * Root application component.
  *
@@ -8,6 +8,9 @@
  */
 
 import { useState, type KeyboardEvent } from "react";
+
+import { GraphCanvas } from "./components/graph/GraphCanvas";
+import { useGraphData } from "./hooks/useGraphData";
 
 // ============================================
 // Types
@@ -71,7 +74,6 @@ function App() {
         setSearchResult(data);
         setView("workspace");
       } else {
-        // TODO in a future step: show a "not found" UI on the landing page
         console.warn("[ATLAS] Entity not found:", data.query);
       }
     } catch (error) {
@@ -129,10 +131,8 @@ interface LandingViewProps {
 function LandingView({ query, setQuery, isSearching, onKeyDown }: LandingViewProps) {
   return (
     <div className="relative flex items-center justify-center w-full min-h-screen bg-slate-950 overflow-hidden animate-fadeIn">
-      {/* Ambient background glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(6,182,212,0.08)_0%,_transparent_60%)] pointer-events-none" />
 
-      {/* Subtle grid overlay */}
       <div
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -142,9 +142,7 @@ function LandingView({ query, setQuery, isSearching, onKeyDown }: LandingViewPro
         }}
       />
 
-      {/* Main content */}
       <div className="relative z-10 w-full max-w-2xl px-6">
-        {/* Brand */}
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold tracking-[0.35em] text-cyan-400 mb-3">
             ATLAS
@@ -154,7 +152,6 @@ function LandingView({ query, setQuery, isSearching, onKeyDown }: LandingViewPro
           </p>
         </div>
 
-        {/* Search interface */}
         <div className="relative group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg opacity-0 group-focus-within:opacity-40 blur transition duration-500" />
 
@@ -184,13 +181,12 @@ function LandingView({ query, setQuery, isSearching, onKeyDown }: LandingViewPro
             />
 
             <div className="hidden sm:flex items-center gap-1.5 px-4 mr-2 py-1.5 bg-slate-800/60 border border-slate-700 rounded text-xs text-slate-400 font-mono">
-              <span>↵</span>
+              <span>{"\u21B5"}</span>
               <span>Enter</span>
             </div>
           </div>
         </div>
 
-        {/* Helper text */}
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-600 uppercase tracking-widest">
             Try: <span className="text-slate-400">james.chen@meridian-global.co</span>
@@ -198,7 +194,6 @@ function LandingView({ query, setQuery, isSearching, onKeyDown }: LandingViewPro
         </div>
       </div>
 
-      {/* Status bar */}
       <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-2">
         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
         <p className="text-xs text-slate-600 font-mono uppercase tracking-widest">
@@ -219,6 +214,7 @@ interface WorkspaceViewProps {
 }
 
 function WorkspaceView({ searchResult, onReturn }: WorkspaceViewProps) {
+  const { nodes: graphNodes, edges: graphEdges } = useGraphData(searchResult);
   const rootLabel = searchResult.root_entity?.label ?? "Entity";
   const rootValue =
     (searchResult.root_entity?.properties?.value as string) ??
@@ -227,11 +223,8 @@ function WorkspaceView({ searchResult, onReturn }: WorkspaceViewProps) {
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-slate-950 text-slate-100 animate-fadeIn">
-      {/* ============================================
-          Top Toolbar
-          ============================================ */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm">
-        {/* Left: Brand + back button */}
+      {/* Top Toolbar */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-sm z-20">
         <div className="flex items-center gap-6">
           <button
             onClick={onReturn}
@@ -245,10 +238,8 @@ function WorkspaceView({ searchResult, onReturn }: WorkspaceViewProps) {
             </span>
           </button>
 
-          {/* Divider */}
           <div className="w-px h-6 bg-slate-800" />
 
-          {/* Current investigation subject */}
           <div className="flex items-center gap-3">
             <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded">
               {rootLabel}
@@ -259,7 +250,6 @@ function WorkspaceView({ searchResult, onReturn }: WorkspaceViewProps) {
           </div>
         </div>
 
-        {/* Right: Live status */}
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-xs text-slate-500 font-mono uppercase tracking-widest">
@@ -268,43 +258,15 @@ function WorkspaceView({ searchResult, onReturn }: WorkspaceViewProps) {
         </div>
       </header>
 
-      {/* ============================================
-          Graph Canvas Area (placeholder)
-          ============================================ */}
+      {/* Graph Canvas — React Flow */}
       <main className="relative flex-1 overflow-hidden">
-        {/* Grid backdrop */}
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(6,182,212,0.06)_0%,_transparent_70%)] pointer-events-none z-10" />
 
-        {/* Ambient glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(6,182,212,0.06)_0%,_transparent_70%)] pointer-events-none" />
-
-        {/* Placeholder message */}
-        <div className="relative z-10 flex flex-col items-center justify-center w-full h-full">
-          <div className="text-center max-w-md">
-            <div className="inline-block px-3 py-1 mb-4 text-[10px] font-mono uppercase tracking-widest text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded">
-              Graph Canvas
-            </div>
-            <p className="text-slate-400 text-sm mb-2">
-              Investigation network loaded successfully.
-            </p>
-            <p className="text-slate-600 text-xs font-mono">
-              Visualization engine initializing...
-            </p>
-          </div>
-        </div>
+        <GraphCanvas nodes={graphNodes} edges={graphEdges} />
       </main>
 
-      {/* ============================================
-          Footer (status bar)
-          ============================================ */}
-      <footer className="flex items-center justify-between px-6 py-3 border-t border-slate-800/60 bg-slate-950/80 backdrop-blur-sm text-xs font-mono">
+      {/* Footer */}
+      <footer className="flex items-center justify-between px-6 py-3 border-t border-slate-800/60 bg-slate-950/80 backdrop-blur-sm text-xs font-mono z-20">
         <div className="flex items-center gap-6 text-slate-500">
           <div className="flex items-center gap-2">
             <span className="text-slate-600 uppercase tracking-widest">Entities</span>
@@ -329,3 +291,4 @@ function WorkspaceView({ searchResult, onReturn }: WorkspaceViewProps) {
     </div>
   );
 }
+
