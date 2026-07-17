@@ -3,6 +3,8 @@
  * Dark mode base for the entire application.
  */
 
+@import "tailwindcss";
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -26,37 +28,19 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.atlas-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 100vh;
-  background-color: #0a0a1a;
+/* ==========================================
+   Custom Animations
+   ========================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.atlas-content {
-  text-align: center;
-  padding: 2rem;
-}
-
-.atlas-title {
-  font-size: 4rem;
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  color: #e2e8f0;
-  margin-bottom: 1rem;
-}
-
-.atlas-tagline {
-  font-size: 1.125rem;
-  color: #94a3b8;
-  margin-bottom: 0.5rem;
-}
-
-.atlas-status {
-  font-size: 0.875rem;
-  color: #10b981;
-  font-family: "Consolas", "Monaco", monospace;
-  letter-spacing: 0.1em;
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out;
 }
