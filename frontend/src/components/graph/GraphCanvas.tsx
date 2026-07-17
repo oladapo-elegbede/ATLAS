@@ -17,6 +17,16 @@ import {
 
 import "@xyflow/react/dist/style.css";
 
+import { EntityNode } from "./EntityNode";
+
+// ============================================
+// Custom node type registry
+// ============================================
+
+const nodeTypes = {
+  entity: EntityNode,
+};
+
 // ============================================
 // Component
 // ============================================
@@ -37,6 +47,7 @@ export function GraphCanvas({ nodes = [], edges = [] }: GraphCanvasProps) {
       <ReactFlow
         nodes={memoizedNodes}
         edges={memoizedEdges}
+        nodeTypes={nodeTypes}
         fitView
         minZoom={0.1}
         maxZoom={2}

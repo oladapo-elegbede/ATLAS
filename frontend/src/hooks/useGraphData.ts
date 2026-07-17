@@ -3,9 +3,6 @@
  *
  * Transforms an ATLAS API search response into React Flow's
  * nodes and edges format, with automatic layout via dagre.
- *
- * Kept as a hook (rather than inline transform code) so the
- * transformation logic stays testable and reusable.
  */
 
 import { useMemo } from "react";
@@ -13,7 +10,7 @@ import dagre from "dagre";
 import type { Node, Edge } from "@xyflow/react";
 
 // ============================================
-// Types (matching our API response)
+// Types
 // ============================================
 
 export interface AtlasApiNode {
@@ -41,9 +38,9 @@ export interface AtlasSearchResult {
 // Layout constants
 // ============================================
 
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 60;
-const LAYOUT_DIRECTION = "LR"; // left-to-right
+const NODE_WIDTH = 240;
+const NODE_HEIGHT = 70;
+const LAYOUT_DIRECTION = "LR";
 
 // ============================================
 // Hook
@@ -62,18 +59,19 @@ export function useGraphData(
       return { nodes: [], edges: [] };
     }
 
+    const rootId = searchResult.root_entity?.id;
+
     // Build a dagre graph to compute positions
     const dagreGraph = new dagre.graphlib.Graph();
     dagreGraph.setDefaultEdgeLabel(() => ({}));
     dagreGraph.setGraph({
       rankdir: LAYOUT_DIRECTION,
-      nodesep: 60,
-      ranksep: 100,
+      nodesep: 40,
+      ranksep: 120,
       marginx: 40,
       marginy: 40,
     });
 
-    // Add nodes to dagre
     searchResult.nodes.forEach((node) => {
       dagreGraph.setNode(node.id, {
         width: NODE_WIDTH,
@@ -81,35 +79,37 @@ export function useGraphData(
       });
     });
 
-    // Add edges to dagre
     searchResult.relationships.forEach((rel) => {
       dagreGraph.setEdge(rel.from, rel.to);
     });
 
-    // Compute layout
     dagre.layout(dagreGraph);
 
-    // Build React Flow nodes with computed positions
+    // Build React Flow nodes using our custom "entity" node type
     const flowNodes: Node[] = searchResult.nodes.map((node) => {
       const dagreNode = dagreGraph.node(node.id);
       const displayValue =
         (node.properties.value as string) ??
         (node.properties.name as string) ??
         node.id;
+      const riskLevel =
+        (node.properties.risk_level as "low" | "medium" | "high" | undefined) ??
+        "low";
 
       return {
         id: node.id,
-        type: "default",
+        type: "entity",
         position: {
           x: dagreNode.x - NODE_WIDTH / 2,
           y: dagreNode.y - NODE_HEIGHT / 2,
         },
         data: {
           label: displayValue,
+          entityLabel: node.label,
+          displayValue,
+          riskLevel,
+          isRoot: node.id === rootId,
         },
-        // Store the original data for later use (custom nodes, evidence panel, etc.)
-        // Attaching under `atlas` prevents collision with React Flow internals.
-        // We'll use this in the next micro-step for custom styling.
       };
     });
 
